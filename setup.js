@@ -4,7 +4,7 @@
 //===============================================
 
 // d.children when node is open
-// d._children when node is closed 
+// d._children when node is closed
 
 //===============================================
 function select2DataCollectName(d) {
@@ -74,19 +74,19 @@ function select2DataCollectExpertise(d) {
 function select2DataObjectFilter() {
     select2DataObject = [];
     select2Data.sort(function(a, b) {
-            if (a > b) return 1; // sort
-            if (a < b) return -1;
-            return 0;
-        })
-        .filter(function(item, i, ar) {
-            return ar.indexOf(item) === i;
-        }) // remove duplicate items
-        .filter(function(item, i, ar) {
-            select2DataObject.push({
-                "id": i,
-                "text": item
-            });
+        if (a > b) return 1; // sort
+        if (a < b) return -1;
+        return 0;
+    })
+            .filter(function(item, i, ar) {
+        return ar.indexOf(item) === i;
+    })// remove duplicate items
+            .filter(function(item, i, ar) {
+        select2DataObject.push({
+            "id": i,
+            "text": item
         });
+    });
     //console.log(select2DataObject);
 }
 
@@ -108,120 +108,69 @@ function escapeRegExp(str) {
 }
 
 //===============================================
-function searchTree(d) {
-    if (d.children)
-        d.children.forEach(searchTree);
-    else if (d._children)
-        d._children.forEach(searchTree);
-    var searchFieldValue = eval(searchField);
-    if (searchFieldValue && searchFieldValue.match(escapeRegExp(searchText))) {
+function searchTree() {
+    selectedRoot = new Object();
+    selectedRoot.children = new Array();
+    searchSelectedTree(root);
+
+    $("#numberValue").html(selectedRoot.children.length);
+}
+
+function searchSelectedTree(d) {
+    i++;
+    if (d.children) {
+        d.children.forEach(searchSelectedTree);
+    } else if (d._children) {
+        d._children.forEach(searchSelectedTree);
+    }
+
+    if (isElementOkForAllSelects(d)) {
         // Walk parent chain
         var ancestors = [];
         var parent = d;
-        while (typeof(parent) !== "undefined") {
+        while ("undefined" !== typeof(parent)) {
             ancestors.push(parent);
-            //console.log(parent);
             parent.class = "found";
             parent = parent.parent;
         }
-        //console.log(ancestors);
+        if (selectedRoot && selectedRoot.children && selectedRoot.children.indexOf(d) == -1)
+            selectedRoot.children.push(d);
+    } else if (selectedRoot && selectedRoot.children && selectedRoot.children.indexOf(d) != -1) {
+        selectedRoot.children.splice(selectedRoot.children.indexOf(d), 1);
     }
 }
 
-//===============================================
-$("#searchName").on("select2-selecting", function(e) {
-    $("#searchEmployer").select2('val', '');
-    $("#searchProject").select2('val', '');
-    $("#searchContract").select2('val', '');
-    $("#searchExpertise").select2('val', '');
-    divTooltip.style("visibility", "hidden")
+function isElementOkForAllSelects(d) {
+    var isSelectableForName = isElementOkForSelect(d, "#searchName", "d.Name + ' ' + d.Firstname");
+    var isSelectableForEmployer = isElementOkForSelect(d, "#searchEmployer", "d.Employer");
+    var isSelectableForContract = isElementOkForSelect(d, "#searchContract", "d.Contract");
+    var isSelectableForProject = isElementOkForSelect(d, "#searchProject", "d.Project");
+    var isSelectableForExpertise = isElementOkForSelect(d, "#searchExpertise", "d.Expertise");
+    return isSelectableForName && isSelectableForEmployer && isSelectableForContract && isSelectableForProject && isSelectableForExpertise;
+}
+
+function isElementOkForSelect(d, selectId, searchFieldV) {
+    var dataSelect = $(selectId).data().select2.data();
+    return (null == dataSelect) || ((null != dataSelect) && eval(searchFieldV) && (null != eval(searchFieldV).match(escapeRegExp(dataSelect.text))) && eval(searchFieldV).match(escapeRegExp(dataSelect.text)));
+}
+
+
+function selectAction() {
+    divTooltip.style("visibility", "hidden");
     clearAll(root);
     expandAll(root);
     update(root);
 
-    searchField = "d.Name + ' ' + d.Firstname";
-    searchText = e.object.text;
-    searchTree(root);
+    searchTree();
     root.children.forEach(collapseAllNotFound);
     update(root);
     centerNode(root.children[0]);
-})
+}
 
 //===============================================
-$("#searchEmployer").on("select2-selecting", function(e) {
-    divTooltip.style("visibility", "hidden")
-    $("#searchName").select2('val', '');
-    $("#searchProject").select2('val', '');
-    $("#searchContract").select2('val', '');
-    $("#searchExpertise").select2('val', '');
-    clearAll(root);
-    expandAll(root);
-    update(root);
-
-    searchField = "d.Employer";
-    searchText = e.object.text;
-    searchTree(root);
-    root.children.forEach(collapseAllNotFound);
-    update(root);
-    centerNode(root.children[0]);
-})
-
-//===============================================
-$("#searchContract").on("select2-selecting", function(e) {
-    divTooltip.style("visibility", "hidden")
-    $("#searchName").select2('val', '');
-    $("#searchEmployer").select2('val', '');
-    $("#searchProject").select2('val', '');
-    $("#searchExpertise").select2('val', '');
-    clearAll(root);
-    expandAll(root);
-    update(root);
-
-    searchField = "d.Contract";
-    searchText = e.object.text;
-    searchTree(root);
-    root.children.forEach(collapseAllNotFound);
-    update(root);
-    centerNode(root.children[0]);
-})
-
-//===============================================
-$("#searchProject").on("select2-selecting", function(e) {
-    divTooltip.style("visibility", "hidden")
-    $("#searchName").select2('val', '');
-    $("#searchEmployer").select2('val', '');
-    $("#searchContract").select2('val', '');
-    $("#searchExpertise").select2('val', '');
-    clearAll(root);
-    expandAll(root);
-    update(root);
-
-    searchField = "d.Project";
-    searchText = e.object.text;
-    searchTree(root);
-    root.children.forEach(collapseAllNotFound);
-    update(root);
-    centerNode(root.children[0]);
-})
-
-//===============================================
-$("#searchExpertise").on("select2-selecting", function(e) {
-    divTooltip.style("visibility", "hidden")
-    $("#searchName").select2('val', '');
-    $("#searchEmployer").select2('val', '');
-    $("#searchContract").select2('val', '');
-    $("#searchProject").select2('val', '');
-    clearAll(root);
-    expandAll(root);
-    update(root);
-
-    searchField = "d.Expertise";
-    searchText = e.object.text;
-    searchTree(root);
-    root.children.forEach(collapseAllNotFound);
-    update(root);
-    centerNode(root.children[0]);
-})
+$("#searchName, #searchEmployer, #searchContract, #searchProject, #searchExpertise").on("change", function(e) {
+    selectAction();
+});
 
 //===============================================
 $("#searchName, #searchEmployer, #searchContract, #searchProject, #searchExpertise").on("select2-clearing", function(e) {
@@ -245,38 +194,39 @@ var viewerWidth = $(document).width();
 var viewerHeight = $(document).height();
 
 var i = 0,
-    xwrap = 250,
-    xspace = 250,
-    duration = 750,
-    root, nodes,
-    select2Data,
-    svgGroup;
+        xwrap = 250,
+        xspace = 250,
+        duration = 750,
+        root, nodes,
+        select2Data,
+        svgGroup;
+var selectedRoot = false;
 
-var searchField, searchText;
+//var searchField, searchText;
 
 var tree = d3.layout.tree()
-    .size([viewerHeight, viewerWidth]);
+        .size([viewerHeight, viewerWidth]);
 
 var diagonal = d3.svg.diagonal()
-    .projection(function(d) {
-        return [d.y, d.x];
-    });
+        .projection(function(d) {
+    return [d.y, d.x];
+});
 
 // define the baseSvg, attaching a class for styling and the zoomListener
 var baseSvg = d3.select("#tree-container").append("svg")
-    .attr("width", viewerWidth)
-    .attr("height", viewerHeight)
-    .call(zoomListener);
+        .attr("width", viewerWidth)
+        .attr("height", viewerHeight)
+        .call(zoomListener);
 
-// Tooltip 
+// Tooltip
 var divTooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("visibility", "hidden");
+        .attr("class", "tooltip")
+        .style("visibility", "hidden");
 
 d3.select("body").select("svg")
-    .on("click", function(d) {
-        divTooltip.style("visibility", "hidden");
-    });
+        .on("click", function(d) {
+    divTooltip.style("visibility", "hidden");
+});
 
 //===============================================
 d3.json("../LSCE.json", function(error, treeData) {
@@ -375,7 +325,7 @@ function update(source) {
 
     // Compute the new tree layout.
     nodes = tree.nodes(root).reverse(),
-        links = tree.links(nodes);
+            links = tree.links(nodes);
 
     // Normalize for fixed-depth.
     nodes.forEach(function(d) {
@@ -384,84 +334,88 @@ function update(source) {
 
     // Update the nodes…
     var node = svgGroup.selectAll("g.node")
-        .data(nodes, function(d) {
-            return d.id || (d.id = ++i);
-        });
+            .data(nodes, function(d) {
+        return d.id || (d.id = ++i);
+    });
 
     // Enter any new nodes at the parent's previous position.
     var nodeEnter = node.enter().append("g")
-        .attr("class", "node")
-        .attr("transform", function(d) {
-            return "translate(" + source.y0 + "," + source.x0 + ")";
-        })
-        .on("click", toggle);
+            .attr("class", "node")
+            .attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+    })
+            .on("click", toggle);
 
     nodeEnter.append("circle")
-        .attr("r", 0.)
-        .style("fill", function(d) {
-            return d._children ? "lightsteelblue" : "#fff";
-        });
+            .attr("r", 0.)
+            .style("fill", function(d) {
+        return d._children ? "lightsteelblue" : "#fff";
+    });
 
     nodeEnter.append("circle")
-        .attr('class', 'ghostCircle')
-        .attr("r", 10)
-        .attr("opacity", 0.)
-        .style("fill", "red");
+            .attr('class', 'ghostCircle')
+            .attr("r", 10)
+            .attr("opacity", 0.)
+            .style("fill", "red");
 
     nodeEnter.append("text")
-        .attr("x", function(d) {
-            return d.children || d._children ? -10 : 10;
-        })
-        .attr("y", "3")
-        .attr("text-anchor", function(d) {
-            return d.children || d._children ? "end" : "start";
-        })
-        .text(function(d) {
-            if (d.Person && d.Function && d.Function.length > 0)
-            //return d.Function + ": " + d.Name + " " + d.Firstname;
-                return d.Name + " " + d.Firstname + " (" + d.Function + ")";
-            else if (d.Person)
-                return d.Name + " " + d.Firstname;
-            else
-                return d.Name;
-        })
-        .style("font-weight", function(d) {
-            if (d.children || d._children) return "bold";
-            if (d.Function && d.Function.length > 0)
-                return d.Function.match(/Chef|Directrice/g) ? "bold" : "normal";
-            return "normal";
-        })
-        .style("fill", function(d) {
-            if (d.Function && d.Function.length > 0)
-                return d.Function.match(/Chef|Directrice/g) ? "Blue" : "Black";
-        })
-        .style("fill-opacity", 0.)
-        .call(wrap, xwrap)
-        .on("mouseover", function(d) {
-            if (d.Person) {
-                divTooltip
-                    .html("<div class='name'>" + d.Name + " " + d.Firstname + "</div>" +
-                        //"<img class='photo' onerror=\"this.src='default.png'\" src='Trombinoscope2/" + d.Login + ".jpg'></img></br>" +
-                        "<img class='photo' onerror=\"this.src='default.png'\" src='https://intranet.lsce.ipsl.fr/Images/Trombinoscope/" + d.Login + ".jpg'></img></br>" +
-                        "<div class='info'>" +
-                        "Employeur: " + d.Employer + "</br>" +
-                        "Contrat: " + d.Contract + "</br>" +
-                        "Projet(s): " + d.Project + "</br>" +
-                        //"Expertise: " + d.Expertise + "</br>" +
-                        d.Site + "</br>" + d.Office + "</br>" +
-                        d.Phone + "</br>" +
-                        "<a href='mailto:" + d.Email + "'>" + d.Email + "</a>" +
-                        "</div>")
-                    .style("visibility", "visible")
+            .attr("x", function(d) {
+        return d.children || d._children ? -10 : 10;
+    })
+            .attr("y", "3")
+            .attr("text-anchor", function(d) {
+        return d.children || d._children ? "end" : "start";
+    })
+            .text(function(d) {
+        if (d.Person && d.Function && d.Function.length > 0)
+        //return d.Function + ": " + d.Name + " " + d.Firstname;
+            return d.Name + " " + d.Firstname + " (" + d.Function + ")";
+        else if (d.Person)
+            return d.Name + " " + d.Firstname;
+        else
+            return d.Name;
+    })
+            .style("font-weight", function(d) {
+        if (d.children || d._children) return "bold";
+        if (d.Function && d.Function.length > 0)
+            return d.Function.match(/Chef|Directrice/g) ? "bold" : "normal";
+        return "normal";
+    })
+            .style("fill", function(d) {
+        if (d.Function && d.Function.length > 0)
+            return d.Function.match(/Chef|Directrice/g) ? "Blue" : "Black";
+    })
+            .style("fill-opacity", 0.)
+            .call(wrap, xwrap)
+            .on("mouseover", function(d) {
+        if (d.Person) {
+            var content = "<div class='name'>" + d.Name + " " + d.Firstname + "</div>";
+            //var isImage = UrlExists("Trombinoscope2/" + d.Login + ".jpg");
+            //if (isImage)
+
+            //content += "<img class='photo' onerror=\"this.src='default.png'\" src='Trombinoscope2/" + d.Login + ".jpg'></img>";
+            content += "<img class='photo' onerror=\"this.src='default.png'\" src='https://intranet.lsce.ipsl.fr/Images/Trombinoscope/" + d.Login + ".jpg'></img>";
+
+            content += "</br><div class='info'>" +
+                    "Employeur: " + d.Employer + "</br>" +
+                    "Contrat: " + d.Contract + "</br>" +
+                    "Projet(s): " + d.Project + "</br>" +
+                //"Expertise: " + d.Expertise + "</br>" +
+                    d.Site + "</br>" + d.Office + "</br>" +
+                    d.Phone + "</br>" +
+                    "<a href='mailto:" + d.Email + "'>" + d.Email + "</a>" +
+                    "</div>";
+            divTooltip.html(content).style("visibility", "visible")
                     .style("opacity", 1.)
                     .style("background", "#EEE")
                     .style("border", "4px solid #999")
                     .style("left", (d3.event.pageX + 10) + "px")
                     .style("top", (d3.event.pageY) + "px");
-                //.style("left", (d.y + 280) + "px")
-                //.style("top", (d.x - 20) + "px");
-            } else if (d.Tooltip && d.Tooltip.length > 0) {
-                divTooltip
+
+            //.style("left", (d.y + 280) + "px")
+            //.style("top", (d.x - 20) + "px");
+        } else if (d.Tooltip && d.Tooltip.length > 0) {
+            divTooltip
                     .html(d.Tooltip)
                     .style("visibility", "visible")
                     .style("opacity", .75)
@@ -469,116 +423,116 @@ function update(source) {
                     .style("border", "0px")
                     .style("left", (d3.event.pageX + 10) + "px")
                     .style("top", (d3.event.pageY) + "px");
-            }
-        })
-        .on("mousemove", function(d) {
-            if (!d.Person) {
-                divTooltip
+        }
+    })
+            .on("mousemove", function(d) {
+        if (!d.Person) {
+            divTooltip
                     .style("left", (d3.event.pageX + 10) + "px")
                     .style("top", (d3.event.pageY) + "px");
-            }
-        })
-        .on("mouseout", function(d) {
-            if (!d.Person) {
-                divTooltip.style("visibility", "hidden");
-            }
-        });
+        }
+    })
+            .on("mouseout", function(d) {
+        if (!d.Person) {
+            divTooltip.style("visibility", "hidden");
+        }
+    });
 
     // Transition nodes to their new position.
     var nodeUpdate = node
-        .transition().duration(duration)
-        .attr("transform", function(d) {
-            return "translate(" + d.y + "," + d.x + ")";
-        });
+            .transition().duration(duration)
+            .attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+    });
 
     nodeUpdate.select("circle")
-        .attr("r", 4.5)
-        .style("fill", function(d) {
-            if (d.class === "found") {
-                return "#ff4136"; //red
-            } else if (d._children) {
-                return "lightsteelblue";
-            } else {
-                return "#fff";
-            }
-        })
-        .style("stroke", function(d) {
-            if (d.class === "found") {
-                return "#ff4136"; //red
-            }
-        });
+            .attr("r", 4.5)
+            .style("fill", function(d) {
+        if (d.class === "found") {
+            return "#ff4136"; //red
+        } else if (d._children) {
+            return "lightsteelblue";
+        } else {
+            return "#fff";
+        }
+    })
+            .style("stroke", function(d) {
+        if (d.class === "found") {
+            return "#ff4136"; //red
+        }
+    });
 
     nodeUpdate.select(".ghostCircle")
-        .attr("opacity", function(d) {
-            if (d.Person && d.class === "found")
-                return 0.2;
-            else
-                return 0.0;
-        });
+            .attr("opacity", function(d) {
+        if (d.Person && d.class === "found")
+            return 0.2;
+        else
+            return 0.0;
+    });
 
     nodeUpdate.select("text")
-        .style("fill-opacity", 1.);
+            .style("fill-opacity", 1.);
 
     // Transition exiting nodes to the parent's new position.
     var nodeExit = node.exit()
-        .on("mouseover", null)
-        .on("mouseout", null)
-        .transition().duration(duration)
-        .attr("transform", function(d) {
-            return "translate(" + source.y + "," + source.x + ")";
-        })
-        .remove();
+            .on("mouseover", null)
+            .on("mouseout", null)
+            .transition().duration(duration)
+            .attr("transform", function(d) {
+        return "translate(" + source.y + "," + source.x + ")";
+    })
+            .remove();
 
     nodeExit.select("circle")
-        .attr("r", 2.0);
+            .attr("r", 2.0);
 
     nodeExit.select("text")
-        .style("fill-opacity", 0.);
+            .style("fill-opacity", 0.);
 
     // Update the links…
     var link = svgGroup.selectAll("path.link")
-        .data(links, function(d) {
-            return d.target.id;
-        });
+            .data(links, function(d) {
+        return d.target.id;
+    });
 
     // Enter any new links at the parent's previous position.
     link.enter().insert("path", "g")
-        .attr("class", "link")
-        .attr("d", function(d) {
-            var o = {
-                x: source.x0,
-                y: source.y0
-            };
-            return diagonal({
-                source: o,
-                target: o
-            });
+            .attr("class", "link")
+            .attr("d", function(d) {
+        var o = {
+            x: source.x0,
+            y: source.y0
+        };
+        return diagonal({
+            source: o,
+            target: o
         });
+    });
 
     // Transition links to their new position.
     link
-        .transition().duration(duration)
-        .attr("d", diagonal)
-        .style("stroke", function(d) {
-            if (d.target.class === "found") {
-                return "#ff4136";
-            }
-        });
+            .transition().duration(duration)
+            .attr("d", diagonal)
+            .style("stroke", function(d) {
+        if (d.target.class === "found") {
+            return "#ff4136";
+        }
+    });
 
     // Transition exiting nodes to the parent's new position.
     link.exit()
-        .transition().duration(duration)
-        .attr("d", function(d) {
-            var o = {
-                x: source.x,
-                y: source.y
-            };
-            return diagonal({
-                source: o,
-                target: o
-            });
-        })
-        .remove();
+            .transition().duration(duration)
+            .attr("d", function(d) {
+        var o = {
+            x: source.x,
+            y: source.y
+        };
+        return diagonal({
+            source: o,
+            target: o
+        });
+    })
+            .remove();
 
     // Stash the old positions for transition.
     nodes.forEach(function(d) {
@@ -652,15 +606,15 @@ function toggle(d) {
 function wrap(text, width) {
     text.each(function() {
         var text = d3.select(this),
-            words = text.text().split(/\s+/).reverse(),
-            word,
-            line = [],
-            lineNumber = 0,
-            lineStart = 3,
-            lineHeight = 14,
-            x = text.attr("x"),
-            y = text.attr("y"),
-            tspan = text.text(null).append("tspan").attr("x", x).attr("y", y);
+                words = text.text().split(/\s+/).reverse(),
+                word,
+                line = [],
+                lineNumber = 0,
+                lineStart = 3,
+                lineHeight = 14,
+                x = text.attr("x"),
+                y = text.attr("y"),
+                tspan = text.text(null).append("tspan").attr("x", x).attr("y", y);
         while (word = words.pop()) {
             line.push(word);
             tspan.text(line.join(" "));
@@ -684,8 +638,16 @@ function centerNode(source) {
     x = 50;
     y = y * scale + viewerHeight / 3;
     d3.select('g').transition()
-        .duration(duration)
-        .attr("transform", "translate(" + x + "," + y + ")scale(" + scale + ")");
+            .duration(duration)
+            .attr("transform", "translate(" + x + "," + y + ")scale(" + scale + ")");
     zoomListener.scale(scale);
     zoomListener.translate([x, y]);
+}
+
+
+function UrlExists(url) {
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    return 404 != http.status;
 }
