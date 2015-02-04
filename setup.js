@@ -141,6 +141,9 @@ function searchSelectedTree(d) {
 }
 
 function isElementOkForAllSelects(d) {
+    if(null == $("#searchName").data().select2.data() && null == $("#searchEmployer").data().select2.data() && null == $("#searchContract").data().select2.data() && null == $("#searchProject").data().select2.data() && null == $("#searchExpertise").data().select2.data())
+        return false;
+
     var isSelectableForName = isElementOkForSelect(d, "#searchName", "d.Name + ' ' + d.Firstname");
     var isSelectableForEmployer = isElementOkForSelect(d, "#searchEmployer", "d.Employer");
     var isSelectableForContract = isElementOkForSelect(d, "#searchContract", "d.Contract");
