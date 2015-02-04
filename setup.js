@@ -141,7 +141,7 @@ function searchSelectedTree(d) {
 }
 
 function isElementOkForAllSelects(d) {
-    if(null == $("#searchName").data().select2.data() && null == $("#searchEmployer").data().select2.data() && null == $("#searchContract").data().select2.data() && null == $("#searchProject").data().select2.data() && null == $("#searchExpertise").data().select2.data())
+    if (null == $("#searchName").data().select2.data() && null == $("#searchEmployer").data().select2.data() && null == $("#searchContract").data().select2.data() && null == $("#searchProject").data().select2.data() && null == $("#searchExpertise").data().select2.data())
         return false;
 
     var isSelectableForName = isElementOkForSelect(d, "#searchName", "d.Name + ' ' + d.Firstname");
@@ -513,8 +513,7 @@ function update(source) {
     });
 
     // Transition links to their new position.
-    link
-            .transition().duration(duration)
+    link.transition().duration(duration)
             .attr("d", diagonal)
             .style("stroke", function(d) {
         if (d.target.class === "found") {
@@ -595,12 +594,8 @@ function toggle(d) {
         d.children = d._children; // open a closed node
         d._children = null;
     }
-    clearAll(root);
+//    clearAll(root);
     update(d);
-    $("#searchName").select2("val", "");
-    $("#searchEmployer").select2("val", "");
-    $("#searchContract").select2("val", "");
-    $("#searchProject").select2("val", "");
     centerNode(d);
 }
 
